@@ -7,7 +7,7 @@ cd quickstart
 # To use Pulumi without the Pulumi Cloud, log in using pulumi login --local
 pulumi login --local
 
-# Create a new Pulumi project
+# Create a new Pulumi project that uses k8s manifests
 pulumi new kubernetes-go --force --name quickstart --description "My quickstart project" --stack dev
 ```
 

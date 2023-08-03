@@ -1,0 +1,3 @@
+encryptionsalt: v1:GlKk87t1m9k=:v1:jqGSNfyuIt3OgUz9:13FSoA4gn4qBD+OlozIDdbUaNBQcyw==
+config:
+  helm2:k8sNamespace: helm2ns
