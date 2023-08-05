@@ -1,0 +1,26 @@
+
+name: infr
+runtime: yaml
+description: infr
+config:
+  hostname:
+    default: example.com
+    type: string
+variables:
+  myLabels:
+    foo: bar
+outputs:
+  app1Ns: ${app1Ns.metadata.name}
+  app2Ns: ${app2Ns.metadata.name}
+resources:
+  app1Ns:
+    type: kubernetes:core/v1:Namespace
+    properties:
+      metadata:
+        name: app1
+  app2Ns:
+    type: kubernetes:core/v1:Namespace
+    properties:
+      metadata:
+        name: app2
+
