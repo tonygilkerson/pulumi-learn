@@ -8,6 +8,11 @@ cd helm2
 
 # To use Pulumi without the Pulumi Cloud, log in using pulumi login --local
 pulumi login --local
+# or to use Pulumi cloud
+pulumi logout
+pulumi login
+# or
+pulumi login file:///$PWD
 
 # Create a new Pulumi project that deployes a helm chart
 pulumi new helm-kubernetes-go --force --name helm2 --description "My pulumi helm project" --stack dev
@@ -37,4 +42,18 @@ Then finally deploy it.
 
 ```sh
 pulumi up
+```
+
+Things to try:
+
+```sh
+pulumi stack ls
+pulumi stack output --json
+pulumi stack export  | jq .
+
+# see Pulumi.<stack>.yaml
+pulumi config set FOO bar
+pulumi config set MY_PASS bla --secret
+
+pulumi preview
 ```

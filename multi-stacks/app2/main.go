@@ -11,24 +11,23 @@ func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 
 		//
-		// Get stact reference for infr
+		// Get stack reference for infr
 		//
 		infrStack, err := pulumi.NewStackReference(ctx, "organization/infr/mystack1", nil)
 		if err != nil {
 			return err
 		}
-		app1Ns := infrStack.GetOutput(pulumi.String("app1Ns"))
-
+		app2Ns := infrStack.GetOutput(pulumi.String("app2Ns"))
 
 		appLabels := pulumi.StringMap{
-			"app1": pulumi.String("nginx"),
+			"app": pulumi.String("nginx"),
 		}
-		deployment, err := appsv1.NewDeployment(ctx, "app1", &appsv1.DeploymentArgs{
+		deployment, err := appsv1.NewDeployment(ctx, "app2", &appsv1.DeploymentArgs{
+			//
+			// Use the namespace set in the infr stack
+			//
 			Metadata: &metav1.ObjectMetaArgs{
-				//
-				// Use the namespace set in the infr stack
-				//
-				Namespace: app1Ns.AsStringOutput(),
+				Namespace: app2Ns.AsStringOutput(),
 			},
 			Spec: appsv1.DeploymentSpecArgs{
 				Selector: &metav1.LabelSelectorArgs{

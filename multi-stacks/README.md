@@ -1,10 +1,10 @@
-# Micro Stacks
+# Multi Stacks
 
 Micro stacks demo
 
 ```sh
 # Run all commands from here
-cd micro-stacks
+cd multi-stacks
 
 # Storage - this will create a .pulumi subfolder
 pulumi logout
@@ -79,4 +79,19 @@ pulumi preview --cwd ./app1
 pulumi up --cwd ./app1
 ```
 
-Replace the yaml content
+## app2
+
+```sh
+mkdir app2
+
+# Create project from template
+pulumi new kubernetes-go --cwd ./app2 --stack mystack1 --name app2 --description app2
+
+# Update the app to use the namespace from the infr stack (not shown here)
+
+# Preview the changes
+pulumi preview --cwd ./app2
+
+# Deploy
+pulumi up --cwd ./app2
+```

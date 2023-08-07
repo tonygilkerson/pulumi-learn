@@ -1,3 +1,6 @@
 encryptionsalt: v1:GlKk87t1m9k=:v1:jqGSNfyuIt3OgUz9:13FSoA4gn4qBD+OlozIDdbUaNBQcyw==
 config:
+  helm2:FOO: bar
+  helm2:MY_PASS:
+    secure: v1:uvdz4bigX4DPchxL:rebKmW2PLMaePdhE/Ye+r/HG5Q==
   helm2:k8sNamespace: helm2ns

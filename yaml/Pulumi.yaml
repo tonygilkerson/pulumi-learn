@@ -1,0 +1,23 @@
+name: yaml
+runtime: yaml
+description: A minimal Kubernetes Pulumi YAML program
+outputs:
+  name: ${deployment.metadata.name}
+resources:
+  deployment:
+    properties:
+      spec:
+        replicas: 1
+        selector:
+          matchLabels: ${appLabels}
+        template:
+          metadata:
+            labels: ${appLabels}
+          spec:
+            containers:
+              - image: nginx
+                name: nginx
+    type: kubernetes:apps/v1:Deployment
+variables:
+  appLabels:
+    app: nginx
