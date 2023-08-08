@@ -26,10 +26,8 @@ Exercises for learning [pulumi](https://www.pulumi.com/)
 
 ## What I Like
 
-https://www.pulumi.com/blog/pulumi-yaml/#yaml-as-a-compilation-target-and-cue-support
-
 * **Documentation** - The Doc is good
-* **Easy things are easy** - [Pulumi Yaml](https://www.pulumi.com/docs/languages-sdks/yaml/) is about as simple as using `kubectl apply` with k8s manifests
+* **Easy things are easy** - [Pulumi YAML](https://www.pulumi.com/docs/languages-sdks/yaml/) is about as simple as using `kubectl apply` with k8s manifests. For more on the Pulumi YAML support see this [blog post](https://www.pulumi.com/blog/pulumi-yaml/)
 * **Headroom** - If your use case is complex Pulumi supports that by allowing you to use a general purpose programming language such as Go, CUE and code reuse via [Pulumi Components](https://www.pulumi.com/docs/concepts/resources/components/) for example
 * **Strongly typed configuration** - Pulumi supports [type specifications](https://www.pulumi.com/docs/concepts/config/#strongly-typed-configuration) for configuration, including setting defaults, but it is optional
 * **Helm** - Deploying a Helm chart with Pulumi is very straightforward and easy
@@ -47,7 +45,7 @@ Things I liked but would need to look into in more detail.
 
 ### The relationship between Stacks and Projects
 
-The relationship between stacks and projects is such that we need one stack per project, per environment.  Roughly speaking a project is like a Helm Chart and a stack is like a values.yaml file for the target environment.
+The relationship between stacks and projects is such that we need <u>one stack per project, per environment</u>. I would like the option to share a single stack for a given environment.
 
 This [GitHub Issue](https://github.com/pulumi/pulumi/issues/8402) describes the problem well
 
@@ -77,6 +75,247 @@ We will see this in the `multi-stacks` example. Notice there are multiple `Pulum
 └── infr
     ├── Pulumi.mystack1.yaml
     └── Pulumi.yaml
+```
+
+## Hello World
+
+Lets look at a hello world Pulumi example first, then talk about the concepts then finish up with more demos.
+
+```sh
+#
+# Install the Pulumi CLI
+#
+brew install pulumi/tap/pulumi
+
+#
+# Create a folder to hold our Pulumi project
+#
+mkdir cd hello-world
+cd hello-world
+
+#
+# To use Pulumi without the Pulumi Cloud
+# Save state in the current directory
+#
+pulumi logout
+pulumi login file:///$PWD
+
+#
+# A folder named ".pulumi" is created to hold our state
+#
+$ tree -a
+.
+└── .pulumi
+    ├── meta.yaml
+    └── meta.yaml.attrs
+
+#
+# Create a new Pulumi project that uses k8s manifests
+#
+pulumi new kubernetes-go --name hi --description hi --stack demo --dir go
+Created project 'hi'
+
+Created stack 'demo'
+Enter your passphrase to protect config/secrets: 
+Re-enter your passphrase to confirm: 
+
+Installing dependencies...
+
+Finished installing dependencies
+
+Your new project is ready to go! ✨
+
+To perform an initial deployment, run 'cd go', then, run `pulumi up`
+
+#
+# We can see that a new stack is created in our state
+# And we have a go project that we can use to generate a k8s deployment
+#
+$ tree -a
+.
+├── .pulumi
+│   ├── locks
+│   │   └── organization
+│   │       └── hi
+│   │           └── demo
+│   ├── meta.yaml
+│   ├── meta.yaml.attrs
+│   └── stacks
+│       └── hi
+│           ├── demo.json
+│           └── demo.json.attrs
+└── go
+    ├── Pulumi.demo.yaml
+    ├── Pulumi.yaml
+    ├── go.mod
+    ├── go.sum
+    └── main.go
+
+# 
+# Example config var
+# You will see a new entry in go/Pulumi.demo.yaml 
+#
+pulumi config set FOO  bar --cwd ./go
+pulumi config set PASSWORD opensesame --secret --cwd ./go
+
+$ cat go/Pulumi.demo.yaml 
+encryptionsalt: v1:nApVG/BPNYo=:v1:z9nHwmyDsdP6VFnP:L7VCw7Vi7030vC906zmeQ/RlTnjnjg==
+config:
+  hi:FOO: bar
+  hi:PASSWORD:
+    secure: v1:bzTfJl4IRVFb9hqI:pWFaDaug9O6jdGibQ2VtnJZHr7WTjjpYFsQ=
+
+#
+# Deploy the stack
+#
+pulumi up --cwd ./go
+
+$ kubectl get deployments
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+app-dep-a21fb72b   1/1     1            1           5s
+
+#
+# Destroy the stack
+#
+pulumi destroy --cwd ./go
+
+
+##########################################################################
+# Let's do the same thing but with YAML
+##########################################################################
+
+
+#
+# Create a new Pulumi project that uses k8s manifests
+#
+$ pulumi new kubernetes-yaml --name hi --description hi --stack demo --dir yaml
+error: a project with this name already exists: hi
+
+pulumi new kubernetes-yaml --name hiyaml --description hiyaml --stack demo --dir yaml
+
+#
+# We can see 
+# - new hiyaml stack added to our state 
+# - new hiyaml organization
+# - and our new yaml project files 
+# 
+#
+$ tree -a
+.
+├── .pulumi
+│   ├── backups
+│   │   └── hi
+│   │       └── demo
+│   │           ├── demo.1691528747666666000.json
+│   │           ├── demo.1691528747666666000.json.attrs
+│   │           ├── demo.1691528974507474000.json
+│   │           └── demo.1691528974507474000.json.attrs
+│   ├── history
+│   │   └── hi
+│   │       └── demo
+│   │           ├── demo-1691528747664742000.checkpoint.json
+│   │           ├── demo-1691528747664742000.checkpoint.json.attrs
+│   │           ├── demo-1691528747664742000.history.json
+│   │           ├── demo-1691528747664742000.history.json.attrs
+│   │           ├── demo-1691528974506170000.checkpoint.json
+│   │           ├── demo-1691528974506170000.checkpoint.json.attrs
+│   │           ├── demo-1691528974506170000.history.json
+│   │           └── demo-1691528974506170000.history.json.attrs
+│   ├── locks
+│   │   └── organization
+│   │       ├── hi
+│   │       │   └── demo
+│   │       └── hiyaml
+│   │           └── demo
+│   ├── meta.yaml
+│   ├── meta.yaml.attrs
+│   └── stacks
+│       ├── hi
+│       │   ├── demo.json
+│       │   ├── demo.json.attrs
+│       │   ├── demo.json.bak
+│       │   └── demo.json.bak.attrs
+│       └── hiyaml
+│           ├── demo.json
+│           └── demo.json.attrs
+├── go
+│   ├── Pulumi.demo.yaml
+│   ├── Pulumi.yaml
+│   ├── go.mod
+│   ├── go.sum
+│   └── main.go
+└── yaml
+    ├── Pulumi.demo.yaml
+    └── Pulumi.yaml
+# 
+# Example config var
+# You will see a new entry in go/Pulumi.demo.yaml 
+#
+pulumi config set FOO  bar --cwd ./yaml
+pulumi config set PASSWORD opensesame --secret --cwd ./yaml
+
+$ cat yaml/Pulumi.demo.yaml 
+encryptionsalt: v1:JIfxkMIVjCo=:v1:lRDUUtKrkFj0KLGV:UqRRj8Qymem9Z/Tyo5GnqI+8BY7zkA==
+config:
+  hiyaml:FOO: bar
+  hiyaml:PASSWORD:
+    secure: v1:LNiNJTKKJv2hclII:XZnuD7J9GVrDdzU/FsnGVIbsZ1m2FOsKtHk=
+    
+#
+# Let's look at the Pulumi.yaml file
+# Note: everything nested inside "properties" below is directly copy-pasted from a Kubernetes YAML specification
+#
+$ cat yaml/Pulumi.yaml
+name: hiyaml
+runtime: yaml
+description: hiyaml
+outputs:
+  name: ${deployment.metadata.name}
+resources:
+  deployment:
+    properties:
+      spec:
+        replicas: 1
+        selector:
+          matchLabels: ${appLabels}
+        template:
+          metadata:
+            labels: ${appLabels}
+          spec:
+            containers:
+              - image: nginx
+                name: nginx
+    type: kubernetes:apps/v1:Deployment
+variables:
+  appLabels:
+    app: nginx
+
+#
+# Deploy the stack
+#
+pulumi up --cwd ./yaml
+
+$  kubectl get deployments
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment-af8c6159   1/1     1            1           71s
+
+#
+# Destroy the stack
+#
+pulumi destroy --cwd ./yaml
+
+```
+
+Now that we have a folder with several apps we can see
+
+1. The stacks are not shared for a given target environment
+2. We need to create our own tooling to act multiple applications. For example the following script could be used to deploy all apps at once.
+
+```sh
+#! /bin/bash
+
+pulumi up --cwd ./go
+pulumi up --cwd ./yaml
 ```
 
 ## Pulumi Concepts
@@ -208,16 +447,7 @@ config:
   helm2:k8sNamespace: helm2ns
 ```
 
+See also the [Pulumi new provider options](https://www.pulumi.com/docs/cli/commands/pulumi_new/#synopsis)
 
 ## Demos
 
-### Install
-
-```sh
-brew install pulumi/tap/pulumi
-```
-
-### Of Interest
-
-* https://www.pulumi.com/docs/using-pulumi/organizing-projects-stacks/
-* [patterns - the centralized platform infrastructure repository](https://www.pulumi.com/blog/organizational-patterns-infra-repo/)
